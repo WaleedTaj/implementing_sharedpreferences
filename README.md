@@ -21,7 +21,7 @@ To install and run the Mosam App on your device, follow these steps:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/WaleedTaj/networking_and_API_integration.git
+   git clone https://github.com/WaleedTaj/implementing_sharedpreferences.git
    ```
 2. **Install Dependencies**:
    ```bash
