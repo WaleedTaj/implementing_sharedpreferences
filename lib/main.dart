@@ -13,6 +13,7 @@ void main() {
 
 class ItemsProvider with ChangeNotifier {
   List<String> _items = [];
+  List<String> _filteredItems = [];
   bool _isLoading = true;
 
   // Constructor that initializes the provider and loads items
@@ -21,7 +22,7 @@ class ItemsProvider with ChangeNotifier {
   }
 
   // Getters for the list of items and loading state
-  List<String> get items => _items;
+  List<String> get items => _filteredItems.isEmpty ? _items : _filteredItems;
   bool get isLoading => _isLoading;
 
   // Private method to load items from SharedPreferences
@@ -30,6 +31,7 @@ class ItemsProvider with ChangeNotifier {
         await SharedPreferences.getInstance(); // Access SharedPreferences
     _items = prefs.getStringList('savedItems') ??
         []; // Load saved items or an empty list
+    _filteredItems = _items;
     _isLoading = false; // Set loading to false
     notifyListeners(); // Notify listeners that data has been loaded
   }
@@ -54,6 +56,18 @@ class ItemsProvider with ChangeNotifier {
     _saveItems(); // Save the updated list to SharedPreferences
     notifyListeners(); // Notify listeners (UI) about the change
   }
+
+  void searchItems(String query) {
+    if (query.isEmpty) {
+      _filteredItems = _items;
+    }
+    else {
+      _filteredItems = _items
+          .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+    notifyListeners();
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -70,6 +84,8 @@ class MyApp extends StatelessWidget {
 class ItemsScreen extends StatelessWidget {
   final TextEditingController _controller =
       TextEditingController(); // Controller for the input field
+  final TextEditingController _searchController =
+      TextEditingController(); // Controller for the search field
 
   @override
   Widget build(BuildContext context) {
@@ -192,6 +208,49 @@ class ItemsScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  Padding(
+                    padding: EdgeInsets.all(height * 0.008),
+                    child: Card(
+                      color: Colors.white54,
+                      child: Padding(
+                        padding: EdgeInsets.all(height * 0.008),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            labelText: "Search Items",
+                            suffixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(height * 0.008),
+                              borderSide: BorderSide(
+                                color: Colors.black,
+                                width: width * 0.006,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(height * 0.008),
+                              borderSide: BorderSide(
+                                color: Colors.black54,
+                                width: width * 0.006,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(height * 0.008),
+                              borderSide: BorderSide(
+                                color: Colors.black,
+                                width: width * 0.006,
+                              ),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            itemsProvider.searchItems(value);
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
                   // Dividing the content
                   Divider(
                     height: height * 0.03,
@@ -209,12 +268,12 @@ class ItemsScreen extends StatelessWidget {
                     height: height * 0.01,
                   ),
                   // Checking the condition, if it is true it gives the value after ? and if false it gives values after :
-                  itemsProvider.items.isEmpty
+                  itemsProvider._filteredItems.isEmpty
                       ? Center(
                           child: Padding(
                           padding: EdgeInsets.only(top: height * 0.1),
                           child: Text(
-                            "Nothing to show here!\n    Please add items.",
+                            "No Data Available!",
                             style: TextStyle(fontSize: height * 0.025),
                           ),
                         ))
