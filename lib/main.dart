@@ -54,6 +54,7 @@ class ItemsProvider with ChangeNotifier {
   void removeItem(String item) {
     _items.remove(item);
     _saveItems(); // Save the updated list to SharedPreferences
+    _filteredItems.remove(item);
     notifyListeners(); // Notify listeners (UI) about the change
   }
 
